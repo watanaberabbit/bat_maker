@@ -1,0 +1,866 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バッチファイル作成ツール</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+        }
+        .section-card {
+            background-color: #1f2937; /* bg-gray-800 */
+            border: 1px solid #4b5563; /* border-gray-600 */
+            border-radius: 0.75rem; /* rounded-xl */
+            margin-bottom: 1.5rem; /* mb-6 */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .section-header {
+            padding: 1rem 1.5rem; /* p-4 px-6 */
+            border-bottom: 1px solid #4b5563; /* border-b border-gray-600 */
+            display: flex;
+            align-items: center;
+        }
+        .section-header-main {
+             border-left: 4px solid #ef4444; /* border-l-4 border-red-500 */
+        }
+        .section-header-option {
+             border-left: 4px solid #3b82f6; /* border-l-4 border-blue-500 */
+        }
+        .section-content {
+            padding: 1.5rem; /* p-6 */
+        }
+        .input-group {
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .input-field {
+            width: 100%;
+            background-color: #374151; /* bg-gray-700 */
+            border: 1px solid #4b5563; /* border-gray-600 */
+            color: #f3f4f6; /* text-gray-100 */
+            padding: 0.5rem 0.75rem; /* py-2 px-3 */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6; /* focus:border-blue-500 */
+        }
+        .input-field:disabled {
+            background-color: #4b5563;
+            cursor: not-allowed;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn:disabled {
+            background-color: #4b5563;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* bg-blue-600 */
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #2563eb; /* hover:bg-blue-700 */
+        }
+        .btn-secondary {
+            background-color: #4b5563; /* bg-gray-600 */
+            color: white;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #6b7280; /* hover:bg-gray-500 */
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ef4444;
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        /* For options */
+        .option-group input:checked + .slider {
+            background-color: #3b82f6;
+        }
+        .hidden-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+        .visible-section {
+            max-height: 1000px; /* Adjust as needed */
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+        }
+        .spinner {
+            border: 2px solid #4b5563;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 p-4 sm:p-6 md:p-8">
+
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-white">バッチファイル作成ツール</h1>
+            <p class="text-gray-400 mt-2">UIで選択するだけで、PC初期設定用のバッチファイルを生成します。</p>
+        </header>
+
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Side: Controls -->
+            <div>
+                <!-- Wi-Fi Settings -->
+                <div class="section-card">
+                    <div class="section-header section-header-main">
+                        <label class="switch"><input type="checkbox" id="enableWifi"><span class="slider"></span></label>
+                        <h2 class="text-xl font-semibold ml-4">Wi-Fi設定</h2>
+                    </div>
+                    <div id="wifi-options" class="section-content hidden-section">
+                        <div id="wifiListContainer" class="space-y-6">
+                            <!-- Dynamic Wi-Fi input pairs will be added here -->
+                        </div>
+                        <div class="mt-4">
+                            <button type="button" id="addWifiBtn" class="btn btn-secondary text-sm w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle mr-2" viewBox="0 0 16 16">
+                                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                </svg>
+                                Wi-Fi接続先を追加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- App Installation -->
+                <div class="section-card">
+                    <div class="section-header section-header-main">
+                        <label class="switch"><input type="checkbox" id="enableApps"><span class="slider"></span></label>
+                        <h2 class="text-xl font-semibold ml-4">アプリケーション追加</h2>
+                    </div>
+                    <div id="apps-options" class="section-content hidden-section">
+                        <h3 class="font-semibold mb-3 text-white">主なアプリケーション</h3>
+                        <div id="common-apps-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                            <!-- Common apps checkboxes will be dynamically added here -->
+                        </div>
+
+
+                        <h3 class="font-semibold mb-3 text-white">アプリ名で検索 (winget)</h3>
+                        <div class="flex items-center space-x-2 mb-4">
+                            <input type="text" id="appSearchInput" class="input-field" placeholder="例: PowerToys">
+                            <button type="button" id="searchAppBtn" class="btn btn-secondary whitespace-nowrap text-sm py-2">検索</button>
+                        </div>
+                        <div id="appSearchResultsContainer" class="space-y-2 max-h-60 overflow-y-auto bg-gray-900/50 p-3 rounded-lg">
+                            <!-- Search results will appear here -->
+                        </div>
+
+
+                        <h3 class="font-semibold mb-3 mt-6 text-white">URLで直接追加</h3>
+                        <div class="flex items-center space-x-2 mb-4">
+                            <input type="text" id="appUrlInput" class="input-field" placeholder="https://.../installer.exe">
+                            <button type="button" id="addAppByUrlBtn" class="btn btn-secondary whitespace-nowrap text-sm py-2">追加</button>
+                        </div>
+                     
+                        <h3 class="font-semibold mb-3 text-white mt-6">インストールするアプリ一覧</h3>
+                        <div id="appListContainer" class="space-y-2 min-h-[40px] bg-gray-900/50 p-3 rounded-lg">
+                            <p id="appListPlaceholder" class="text-gray-500">追加されたアプリがここに表示されます。</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- User Management -->
+                <div class="section-card">
+                    <div class="section-header section-header-main">
+                        <label class="switch"><input type="checkbox" id="enableUserMgmt"><span class="slider"></span></label>
+                        <h2 class="text-xl font-semibold ml-4">ユーザーアカウント操作</h2>
+                    </div>
+                    <div id="user-mgmt-options" class="section-content hidden-section">
+                        <div class="section-card border-blue-500/50">
+                           <div class="section-header section-header-option">
+                               <label class="switch option-group"><input type="checkbox" id="optAutoGenerateUser"><span class="slider"></span></label>
+                               <h3 class="font-semibold ml-4">ユーザー・パスワード自動生成</h3>
+                           </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="newUsername" class="block mb-2 font-medium">新規ユーザー名</label>
+                            <input type="text" id="newUsername" class="input-field" placeholder="例: taro.yamada">
+                        </div>
+                        <div class="input-group">
+                            <label for="newPassword" class="block mb-2 font-medium">初期パスワード</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="newPassword" class="input-field" placeholder="手入力またはランダム生成">
+                                <button type="button" id="generatePassBtn" class="btn btn-secondary whitespace-nowrap text-sm py-2">ランダム生成</button>
+                            </div>
+                        </div>
+                       
+                        <!-- Options -->
+                        <div class="mt-6 space-y-4">
+                            <div class="section-card border-blue-500/50">
+                                <div class="section-header section-header-option">
+                                    <label class="switch option-group"><input type="checkbox" id="optSetAdmin" checked><span class="slider"></span></label>
+                                    <h3 class="font-semibold ml-4">新規ユーザーを管理者に設定</h3>
+                                </div>
+                            </div>
+                            <div class="section-card border-blue-500/50">
+                                <div class="section-header section-header-option">
+                                    <label class="switch option-group"><input type="checkbox" id="optForcePassChange"><span class="slider"></span></label>
+                                    <h3 class="font-semibold ml-4">初回ログイン時にパスワード変更を要求</h3>
+                                </div>
+                            </div>
+                            <div class="section-card border-blue-500/50">
+                                <div class="section-header section-header-option">
+                                    <label class="switch option-group"><input type="checkbox" id="optDemoteCurrentUser" checked><span class="slider"></span></label>
+                                    <h3 class="font-semibold ml-4">実行者アカウントを標準ユーザーに変更</h3>
+                                </div>
+                            </div>
+                             <div class="section-card border-blue-500/50">
+                                <div class="section-header section-header-option">
+                                    <label class="switch option-group"><input type="checkbox" id="optCreatePassFile" checked><span class="slider"></span></label>
+                                    <h3 class="font-semibold ml-4">パスワードファイルを作成</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Reboot Option -->
+                <div class="section-card">
+                     <div class="section-header">
+                         <label class="switch option-group"><input type="checkbox" id="enableReboot" checked><span class="slider"></span></label>
+                         <h2 class="text-xl font-semibold ml-4">完了後にPCを再起動</h2>
+                     </div>
+                </div>
+
+
+            </div>
+
+
+            <!-- Right Side: Output -->
+            <div>
+                <div class="sticky top-8">
+                    <div class="section-card p-6">
+                        <div class="input-group">
+                            <label for="batchFilename" class="block mb-2 font-medium text-center text-white">バッチファイル名</label>
+                            <div class="flex items-center justify-center">
+                                <input type="text" id="batchFilename" class="input-field text-right rounded-r-none" value="setup">
+                                <span class="px-3 py-2 bg-gray-600 text-gray-300 rounded-r-md border border-gray-600" style="height: 38px;">.bat</span>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex justify-center items-center">
+                            <button id="downloadBtn" class="btn btn-primary text-lg px-8 py-4 w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                ダウンロード
+                            </button>
+                        </div>
+                    </div>
+                    <!-- The textarea is now hidden but still functional for the script generation -->
+                    <textarea id="outputScript" readonly class="hidden"></textarea>
+                </div>
+            </div>
+        </div>
+
+
+        <footer class="text-center mt-12 text-gray-500">
+            <p>&copy; 2025 バッチファイル作成ツール</p>
+        </footer>
+    </div>
+
+
+    <script>
+        // --- Global State & Constants ---
+        let wifiCredentials = [];
+        let appsToInstallList = new Map();
+        const COMMON_APPS = [
+            { id: 'Google.Chrome', name: 'Google Chrome', type: 'winget' },
+            { id: 'Zoom.Zoom', name: 'Zoom', type: 'winget' },
+            { id: 'Microsoft.VisualStudioCode', name: 'VS Code', type: 'winget' },
+            { id: 'Slack.Slack', name: 'Slack', type: 'winget' },
+            { id: 'withsecure-installer', name: 'WithSecure Elements', type: 'withsecure' }
+        ];
+
+
+        // --- Function Definitions ---
+
+
+        // Toggles visibility of a section based on a checkbox
+        const setupToggle = (checkboxId, sectionId) => {
+            const checkbox = document.getElementById(checkboxId);
+            const section = document.getElementById(sectionId);
+            checkbox.addEventListener('change', () => {
+                if (checkbox.checked) {
+                    section.classList.add('visible-section');
+                    section.classList.remove('hidden-section');
+                } else {
+                    section.classList.remove('visible-section');
+                    section.classList.add('hidden-section');
+                }
+                generateScript();
+            });
+        };
+       
+        // Renders the list of Wi-Fi credentials
+        const renderWifiList = () => {
+            const container = document.getElementById('wifiListContainer');
+            container.innerHTML = '';
+            if (wifiCredentials.length === 0) {
+                // No placeholder needed as one is added by default
+            } else {
+                wifiCredentials.forEach((cred, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'p-4 border border-gray-700 rounded-lg relative';
+                    div.innerHTML = `
+                        <button type="button" class="absolute top-2 right-2 text-gray-500 hover:text-red-400 text-2xl leading-none" data-index="${index}">&times;</button>
+                        <div class="input-group">
+                            <label class="block mb-2 font-medium text-sm">SSID</label>
+                            <input type="text" class="input-field wifi-ssid" data-index="${index}" value="${cred.ssid}" placeholder="Wi-Fiネットワーク名">
+                        </div>
+                        <div class="input-group mb-0">
+                            <label class="block mb-2 font-medium text-sm">パスワード</label>
+                            <input type="text" class="input-field wifi-pass" data-index="${index}" value="${cred.pass}" placeholder="Wi-Fiパスワード">
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+
+            // Add event listeners after rendering
+            document.querySelectorAll('.wifi-ssid').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    wifiCredentials[e.target.dataset.index].ssid = e.target.value;
+                    generateScript();
+                });
+            });
+            document.querySelectorAll('.wifi-pass').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    wifiCredentials[e.target.dataset.index].pass = e.target.value;
+                    generateScript();
+                });
+            });
+            document.querySelectorAll('#wifiListContainer button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    wifiCredentials.splice(e.currentTarget.dataset.index, 1);
+                    renderWifiList();
+                    generateScript();
+                });
+            });
+        };
+
+
+        // Renders the list of apps to be installed
+        const renderAppList = () => {
+            const container = document.getElementById('appListContainer');
+            container.innerHTML = ''; // Clear the container completely
+
+
+            if (appsToInstallList.size === 0) {
+                // If the list is empty, add the placeholder text back.
+                container.innerHTML = '<p id="appListPlaceholder" class="text-gray-500">追加されたアプリがここに表示されます。</p>';
+            } else {
+                // If the list has items, render them.
+                Array.from(appsToInstallList.values()).forEach(app => {
+                    const appElement = document.createElement('div');
+                    appElement.className = 'flex items-center justify-between bg-gray-700 p-2 rounded-md';
+                    const displayName = app.name || app.id;
+                    appElement.innerHTML = `
+                        <span class="text-white font-mono text-sm truncate" title="${displayName}">${displayName}</span>
+                        <button type="button" class="text-red-400 hover:text-red-300 font-bold text-xl leading-none px-2" data-appid="${app.id}">&times;</button>
+                    `;
+                    appElement.querySelector('button').addEventListener('click', (e) => {
+                        const idToRemove = e.currentTarget.dataset.appid;
+                        appsToInstallList.delete(idToRemove);
+                        syncCheckboxes();
+                        renderAppList();
+                        generateScript();
+                    });
+                    container.appendChild(appElement);
+                });
+            }
+        };
+
+
+        // Sync common app checkboxes with the master list
+        const syncCheckboxes = () => {
+            COMMON_APPS.forEach(app => {
+                const checkbox = document.querySelector(`#common-apps-grid input[data-app-id="${app.id}"]`);
+                if (checkbox) {
+                    checkbox.checked = appsToInstallList.has(app.id);
+                }
+            });
+        };
+
+
+        // Populate common apps grid
+        const populateCommonApps = () => {
+            const grid = document.getElementById('common-apps-grid');
+            COMMON_APPS.forEach(app => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center p-3 bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-600/50 transition-colors';
+                label.innerHTML = `
+                    <input type="checkbox" class="form-checkbox h-5 w-5 bg-gray-800 border-gray-600 text-red-500 focus:ring-red-500 rounded" data-app-id="${app.id.replace(/"/g, '&quot;')}">
+                    <span class="ml-3 text-white">${app.name}</span>
+                `;
+                label.querySelector('input').addEventListener('change', (e) => {
+                    const appObject = COMMON_APPS.find(a => a.id === e.target.dataset.appId);
+                    if (e.target.checked) {
+                        appsToInstallList.set(appObject.id, appObject);
+                    } else {
+                        appsToInstallList.delete(appObject.id);
+                    }
+                    renderAppList();
+                    generateScript();
+                });
+                grid.appendChild(label);
+            });
+        };
+
+
+        // Generates an 8-character random password
+        const generateRandomPassword = () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let password = '';
+            for (let i = 0; i < 8; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        };
+
+
+        // Main function to generate the entire batch script
+        const generateScript = () => {
+            let contentScript = [];
+            let needsAdminCheck = false;
+
+
+            // --- Wi-Fi Section ---
+            if (document.getElementById('enableWifi').checked && wifiCredentials.some(c => c.ssid && c.pass)) {
+                needsAdminCheck = true;
+                const wifiBlocks = wifiCredentials.filter(c => c.ssid && c.pass).map(cred => {
+                    const ssid = cred.ssid;
+                    const pass = cred.pass;
+                    return `
+:: ==================================================
+:: Wi-Fi Setup for: ${ssid}
+:: ==================================================
+echo.
+echo Starting Wi-Fi setup for ${ssid}...
+set "SSID_NAME=${ssid}"
+set "PASSWORD=${pass}"
+(
+    echo ^<?xml version="1.0"?^>
+    echo ^<WLANProfile xmlns="http://www.microsoft.com/networking/WLAN/profile/v1"^>
+    echo  ^<name^>!SSID_NAME!^</name^>
+    echo  ^<SSIDConfig^>
+    echo   ^<SSID^>
+    echo    ^<name^>!SSID_NAME!^</name^>
+    echo   ^</SSID^>
+    echo  ^</SSIDConfig^>
+    echo  ^<connectionType^>ESS^</connectionType^>
+    echo  ^<connectionMode^>auto^</connectionMode^>
+    echo  ^<MSM^>
+    echo   ^<security^>
+    echo    ^<authEncryption^>
+    echo     ^<authentication^>WPA2PSK^</authentication^>
+    echo     ^<encryption^>AES^</encryption^>
+    echo     ^<useOneX^>false^</useOneX^>
+    echo    ^</authEncryption^>
+    echo    ^<sharedKey^>
+    echo     ^<keyType^>passPhrase^</keyType^>
+    echo     ^<protected^>false^</protected^>
+    echo     ^<keyMaterial^>!PASSWORD!^</keyMaterial^>
+    echo    ^</sharedKey^>
+    echo   ^</security^>
+    echo  ^</MSM^>
+    echo ^</WLANProfile^>
+) > "%TEMP%\\!SSID_NAME!.xml"
+netsh wlan add profile filename="%TEMP%\\!SSID_NAME!.xml"
+netsh wlan connect name="!SSID_NAME!"
+del "%TEMP%\\!SSID_NAME!.xml" > nul 2>&1
+`;
+                }).join('');
+                contentScript.push(wifiBlocks);
+            }
+
+
+            // --- App Installation Section ---
+            if (document.getElementById('enableApps').checked && appsToInstallList.size > 0) {
+                needsAdminCheck = true;
+                const wingetAppIds = [];
+                const urlAppScripts = [];
+                let withSecureScript = '';
+
+
+                appsToInstallList.forEach(app => {
+                    if (app.type === 'withsecure') {
+                        withSecureScript = `
+:: ==================================================
+:: WithSecure Elements Installation
+:: ==================================================
+echo.
+echo Starting WithSecure Elements installation...
+set "WITHSECURE_URL=https://download.withsecure.com/PSB/latest/ElementsAgentInstaller.exe"
+set "WITHSECURE_OUT=%TEMP%\\ElementsAgentInstaller.exe"
+echo Downloading WithSecure installer...
+powershell -Command "Invoke-WebRequest -Uri '!WITHSECURE_URL!' -OutFile '!WITHSECURE_OUT!' -UseBasicParsing"
+if exist "!WITHSECURE_OUT!" (
+    echo  -^> Download completed. Starting installer...
+    start "" "!WITHSECURE_OUT!"
+    echo  -^> Installation has been launched.
+) else (
+    echo  -^> [ERROR] WithSecure download failed.
+)
+`;
+                    } else if (app.type === 'url') {
+                        // This part can be expanded for other URL-based installers
+                    } else {
+                        wingetAppIds.push(app.id);
+                    }
+                });
+
+
+                if (withSecureScript) {
+                    contentScript.push(withSecureScript);
+                }
+                if (wingetAppIds.length > 0) {
+                    const appScript = `
+:: ==================================================
+:: Other Application Installation (winget)
+:: ==================================================
+echo.
+echo Starting other application installation...
+set "APPS_TO_INSTALL=${wingetAppIds.join(',')}"
+winget source list > nul
+for %%a in (%APPS_TO_INSTALL%) do (
+    echo.
+    echo --- Installing [%%a] ---
+    winget install --id %%a -e --silent --accept-source-agreements --accept-package-agreements
+    if !errorlevel! equ 0 (
+        echo   -^> Successfully installed [%%a].
+    ) else (
+        echo   -^> ERROR: Failed to install [%%a].
+    )
+)
+`;
+                    contentScript.push(appScript);
+                }
+            }
+
+
+            // --- User Management Section ---
+            if (document.getElementById('enableUserMgmt').checked) {
+                needsAdminCheck = true;
+                const autoGenerate = document.getElementById('optAutoGenerateUser').checked;
+                let userScript;
+
+
+                if (autoGenerate) {
+                    userScript = `
+:: ==================================================
+:: User Account Management (Auto-generated)
+:: ==================================================
+echo.
+echo Starting user account management...
+set "NEW_USERNAME=recovery"
+set "chars=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+set "NEW_PASSWORD="
+for /L %%i in (1,1,8) do (
+    set /a rand_idx=!RANDOM! * 62 / 32768
+    for %%j in (!rand_idx!) do set "NEW_PASSWORD=!NEW_PASSWORD!!chars:~%%j,1!"
+)
+echo Password generated for 'recovery'.
+`;
+                } else {
+                    const username = document.getElementById('newUsername').value.trim();
+                    const password = document.getElementById('newPassword').value;
+                    if (username && password) {
+                         userScript = `
+:: ==================================================
+:: User Account Management (Manual)
+:: ==================================================
+echo.
+echo Starting user account management...
+set "NEW_USERNAME=${username}"
+set "NEW_PASSWORD=${password}"
+`;
+                    }
+                }
+
+
+                if (userScript) {
+                    const requirePassChange = document.getElementById('optForcePassChange').checked ? '/logonpasswordchg:yes' : '/logonpasswordchg:no';
+                    const setAsAdmin = document.getElementById('optSetAdmin').checked;
+                    const createPassFile = document.getElementById('optCreatePassFile').checked;
+                    const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
+
+
+                    userScript += `
+net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange}
+if !errorlevel! neq 0 (
+    echo   -^> ERROR: Failed to create user "!NEW_USERNAME!".
+    goto user_management_end
+)
+echo   -^> User "!NEW_USERNAME!" created successfully.
+`;
+                    if (setAsAdmin) {
+                        userScript += `net localgroup administrators "!NEW_USERNAME!" /add\n`;
+                    }
+                    if (createPassFile) {
+                        userScript += `mkdir "%~dp0password" > nul 2>&1\n(echo User: !NEW_USERNAME! & echo Pass: !NEW_PASSWORD!) > "%~dp0password\\%USERNAME%.txt"\n`;
+                    }
+                    if (demoteCurrentUser) {
+                        userScript += `net localgroup administrators "%USERNAME%" /delete\n`;
+                    }
+                    userScript += `:user_management_end`;
+                    contentScript.push(userScript);
+                }
+            }
+
+
+            // --- Reboot Section ---
+            if (document.getElementById('enableReboot').checked) {
+                needsAdminCheck = true;
+                const delay = document.getElementById('enableUserMgmt').checked ? '5' : '0';
+                const rebootScript = `
+:: ==================================================
+:: Reboot
+:: ==================================================
+echo.
+echo Processing complete. Rebooting in ${delay} seconds...
+shutdown /r /t ${delay}
+`;
+                contentScript.push(rebootScript);
+            }
+           
+            // --- Final Script Assembly ---
+            let finalScript = [];
+            if (needsAdminCheck) {
+                finalScript.push('@echo off', 'chcp 65001 > nul');
+                const adminCheck = `
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo.
+    echo  ERROR: Not running as an administrator.
+    echo  Please right-click this file and select "Run as administrator".
+    echo.
+    pause
+    exit
+)
+echo Running with administrator privileges...
+`;
+                finalScript.push(adminCheck, 'setlocal enabledelayedexpansion', ...contentScript);
+                finalScript.push(`
+echo.
+echo All processes are complete.
+pause
+endlocal
+`);
+            }
+
+
+            document.getElementById('outputScript').value = finalScript.join('\n\n').trim();
+        };
+
+
+        // --- Event Listener Attachment ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateCommonApps();
+            setupToggle('enableWifi', 'wifi-options');
+            setupToggle('enableApps', 'apps-options');
+            setupToggle('enableUserMgmt', 'user-mgmt-options');
+           
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', generateScript);
+            });
+
+
+            document.getElementById('addWifiBtn').addEventListener('click', () => {
+                wifiCredentials.push({ ssid: '', pass: '' });
+                renderWifiList();
+                generateScript();
+            });
+            wifiCredentials.push({ ssid: '', pass: '' });
+            renderWifiList();
+
+
+            const searchAppBtn = document.getElementById('searchAppBtn');
+            const appSearchInput = document.getElementById('appSearchInput');
+            const appSearchResultsContainer = document.getElementById('appSearchResultsContainer');
+
+
+            const handleAppSearch = async () => {
+                const searchTerm = appSearchInput.value.trim();
+                if (!searchTerm) return;
+                appSearchResultsContainer.innerHTML = '<div class="flex justify-center items-center p-4"><div class="spinner"></div><span class="ml-3 text-gray-400">検索中...</span></div>';
+                try {
+                    const proxyUrl = 'https://corsproxy.io/?';
+                    const apiUrl = `https://api.winget.run/v2/packages?query=${encodeURIComponent(searchTerm)}&match=partial&ignore-case=true`;
+                    const response = await fetch(proxyUrl + apiUrl);
+                    if (!response.ok) throw new Error(`API error: ${response.status}`);
+                    const data = await response.json();
+                    appSearchResultsContainer.innerHTML = '';
+                    if (!data.Packages || data.Packages.length === 0) {
+                        appSearchResultsContainer.innerHTML = '<p class="text-center text-gray-500 p-4">一致するアプリケーションが見つかりませんでした。</p>';
+                        return;
+                    }
+                    data.Packages.slice(0, 20).forEach(pkg => {
+                        const resultEl = document.createElement('div');
+                        resultEl.className = 'flex items-center justify-between bg-gray-700/50 p-2 rounded-md';
+                        const appName = pkg.Name || pkg.Id;
+                        resultEl.innerHTML = `
+                            <div class="truncate mr-2">
+                                <p class="text-white font-semibold truncate" title="${appName}">${appName}</p>
+                                <p class="text-gray-400 text-sm font-mono truncate" title="${pkg.Id}">${pkg.Id}</p>
+                            </div>
+                            <button type="button" class="btn btn-secondary whitespace-nowrap text-xs py-1 px-2 add-app-from-search-btn" data-appid="${pkg.Id}" data-appname="${appName}">追加</button>
+                        `;
+                        appSearchResultsContainer.appendChild(resultEl);
+                    });
+                    document.querySelectorAll('.add-app-from-search-btn').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const btn = e.currentTarget;
+                            const appId = btn.dataset.appid;
+                            const appName = btn.dataset.appname;
+                            appsToInstallList.set(appId, {id: appId, name: appName, type: 'winget'});
+                            syncCheckboxes();
+                            renderAppList();
+                            generateScript();
+                            btn.textContent = '追加済';
+                            btn.disabled = true;
+                            btn.classList.add('opacity-50', 'cursor-not-allowed');
+                        });
+                    });
+                } catch (error) {
+                    console.error("Failed to search for apps:", error);
+                    appSearchResultsContainer.innerHTML = '<p class="text-center text-red-400 p-4">アプリの検索中にエラーが発生しました。</p>';
+                }
+            };
+            searchAppBtn.addEventListener('click', handleAppSearch);
+            appSearchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAppSearch());
+
+
+            const addAppByUrlBtn = document.getElementById('addAppByUrlBtn');
+            const appUrlInput = document.getElementById('appUrlInput');
+            addAppByUrlBtn.addEventListener('click', () => {
+                const url = appUrlInput.value.trim();
+                if(url) {
+                    const filename = url.substring(url.lastIndexOf('/') + 1);
+                    appsToInstallList.set(url, {id: url, name: filename, type: 'url'});
+                    appUrlInput.value = '';
+                    renderAppList();
+                    generateScript();
+                }
+            });
+            appUrlInput.addEventListener('keypress', (e) => e.key === 'Enter' && addAppByUrlBtn.click());
+
+
+            const generatePassBtn = document.getElementById('generatePassBtn');
+            const newPasswordInput = document.getElementById('newPassword');
+            const newUsernameInput = document.getElementById('newUsername');
+            const autoGenerateUserCheckbox = document.getElementById('optAutoGenerateUser');
+
+
+            const handleAutoGenerateToggle = () => {
+                const isDisabled = autoGenerateUserCheckbox.checked;
+                newUsernameInput.value = isDisabled ? 'recovery' : '';
+                newPasswordInput.value = isDisabled ? '(実行時に自動生成)' : '';
+                newUsernameInput.disabled = isDisabled;
+                newPasswordInput.disabled = isDisabled;
+                generatePassBtn.disabled = isDisabled;
+                generateScript();
+            };
+            autoGenerateUserCheckbox.addEventListener('change', handleAutoGenerateToggle);
+            generatePassBtn.addEventListener('click', () => {
+                newPasswordInput.value = generateRandomPassword();
+                newPasswordInput.dispatchEvent(new Event('input'));
+            });
+
+
+            document.getElementById('downloadBtn').addEventListener('click', () => {
+                const scriptContent = document.getElementById('outputScript').value;
+                if (!scriptContent) {
+                    alert("生成するスクリプトがありません。何かオプションを選択してください。");
+                    return;
+                }
+                let basename = document.getElementById('batchFilename').value.trim() || 'setup';
+                const filename = basename + '.bat';
+                const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+                const blob = new Blob([bom, scriptContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+
+            handleAutoGenerateToggle();
+            renderAppList();
+            generateScript();
+        });
+    </script>
+
+
+</body>
+</html>
+
+
+
+
+
