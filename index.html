@@ -647,7 +647,7 @@ shutdown /r /t ${delay}
                  if (needsAdminCheck) {
                     const adminCheck = `
 net session >nul 2>&1
-if %errorlevel! neq 0 (
+if %errorlevel% neq 0 (
     echo.
     echo  ERROR: Not running as an administrator.
     echo  Please right-click this file and select "Run as administrator".
