@@ -1,33 +1,34 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PC設定ファイル作成ツール</title>
+    <title>バッチファイル作成ツール</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Noto Sans JP', 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
         }
         .section-card {
             background-color: #1f2937; /* bg-gray-800 */
-            border: 1px solid #4b5563; /* border-gray-600 */
+            border: 1px solid #374151; /* border-gray-700 */
             border-radius: 0.75rem; /* rounded-xl */
             margin-bottom: 1.5rem; /* mb-6 */
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         .section-header {
             padding: 1rem 1.5rem; /* p-4 px-6 */
-            border-bottom: 1px solid #4b5563; /* border-b border-gray-600 */
+            border-bottom: 1px solid #374151; /* border-b border-gray-700 */
             display: flex;
             align-items: center;
         }
         .section-header-main {
-             border-left: 4px solid #ef4444; /* border-l-4 border-red-500 */
+            border-left: 4px solid #ef4444; /* border-l-4 border-red-500 */
         }
         .section-header-option {
-             border-left: 4px solid #3b82f6; /* border-l-4 border-blue-500 */
+            border-left: 4px solid #3b82f6; /* border-l-4 border-blue-500 */
         }
         .section-content {
             padding: 1.5rem; /* p-6 */
@@ -42,28 +43,31 @@
             color: #f3f4f6; /* text-gray-100 */
             padding: 0.5rem 0.75rem; /* py-2 px-3 */
             border-radius: 0.375rem; /* rounded-md */
-            transition: border-color 0.2s, background-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         .input-field:focus {
             outline: none;
             border-color: #3b82f6; /* focus:border-blue-500 */
+            box-shadow: 0 0 0 2px #1e40af; /* focus:ring-2 focus:ring-blue-700 */
         }
         .input-field:disabled {
             background-color: #4b5563;
             cursor: not-allowed;
+            opacity: 0.7;
         }
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
             font-weight: 600;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid transparent;
         }
         .btn:disabled {
-            background-color: #4b5563;
+            opacity: 0.5;
             cursor: not-allowed;
         }
         .btn-primary {
@@ -72,19 +76,23 @@
         }
         .btn-primary:hover:not(:disabled) {
             background-color: #2563eb; /* hover:bg-blue-700 */
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
         }
         .btn-secondary {
             background-color: #4b5563; /* bg-gray-600 */
             color: white;
+            border-color: #6b7280;
         }
         .btn-secondary:hover:not(:disabled) {
             background-color: #6b7280; /* hover:bg-gray-500 */
+            border-color: #9ca3af;
         }
         .switch {
             position: relative;
             display: inline-block;
             width: 50px;
             height: 28px;
+            flex-shrink: 0;
         }
         .switch input {
             opacity: 0;
@@ -116,23 +124,26 @@
         input:checked + .slider {
             background-color: #ef4444;
         }
-        input:checked + .slider:before {
-            transform: translateX(22px);
-        }
         /* For options */
         .option-group input:checked + .slider {
             background-color: #3b82f6;
         }
-        .hidden-section {
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        .hidden-section, .hidden {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
-            padding-top: 0;
-            padding-bottom: 0;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out, border 0.5s, opacity 0.5s;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            border-width: 0 !important;
+             opacity: 0;
         }
         .visible-section {
-            max-height: 1000px; /* Adjust as needed */
-            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+            max-height: 1500px; /* Adjust as needed */
+            transition: max-height 0.5s ease-in, padding 0.5s ease-in, border 0.5s, opacity 0.5s;
+            opacity: 1;
         }
         .spinner {
             border: 2px solid #4b5563;
@@ -150,13 +161,11 @@
 </head>
 <body class="bg-gray-900 text-gray-200 p-4 sm:p-6 md:p-8">
 
-
     <div class="max-w-7xl mx-auto">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-white">PC設定ファイル作成ツール</h1>
-            <p class="text-gray-400 mt-2">PC初期設定用のバッチファイルを生成するテストサイト</p>
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-white">バッチファイル作成ツール</h1>
+            <p class="text-gray-400 mt-2">UIで選択するだけで、PC初期設定用のバッチファイルを生成します。</p>
         </header>
-
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Left Side: Controls -->
@@ -168,21 +177,20 @@
                         <h2 class="text-xl font-semibold ml-4">Wi-Fi設定</h2>
                     </div>
                     <div id="wifi-options" class="section-content hidden-section">
-                        <div id="wifiListContainer" class="space-y-6">
+                        <div id="wifiListContainer" class="space-y-3">
                             <!-- Dynamic Wi-Fi input pairs will be added here -->
                         </div>
                         <div class="mt-4">
                             <button type="button" id="addWifiBtn" class="btn btn-secondary text-sm w-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle mr-2" viewBox="0 0 16 16">
-                                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                  <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                                 </svg>
                                 Wi-Fi接続先を追加
                             </button>
                         </div>
                     </div>
                 </div>
-
 
                 <!-- App Installation -->
                 <div class="section-card">
@@ -196,7 +204,6 @@
                             <!-- Common apps checkboxes will be dynamically added here -->
                         </div>
 
-
                         <h3 class="font-semibold mb-3 text-white">アプリ名で検索 (winget)</h3>
                         <div class="flex items-center space-x-2 mb-4">
                             <input type="text" id="appSearchInput" class="input-field" placeholder="例: PowerToys">
@@ -205,21 +212,13 @@
                         <div id="appSearchResultsContainer" class="space-y-2 max-h-60 overflow-y-auto bg-gray-900/50 p-3 rounded-lg">
                             <!-- Search results will appear here -->
                         </div>
-
-
-                        <h3 class="font-semibold mb-3 mt-6 text-white">URLで直接追加</h3>
-                        <div class="flex items-center space-x-2 mb-4">
-                            <input type="text" id="appUrlInput" class="input-field" placeholder="https://.../installer.exe">
-                            <button type="button" id="addAppByUrlBtn" class="btn btn-secondary whitespace-nowrap text-sm py-2">追加</button>
-                        </div>
-                     
+                        
                         <h3 class="font-semibold mb-3 text-white mt-6">インストールするアプリ一覧</h3>
                         <div id="appListContainer" class="space-y-2 min-h-[40px] bg-gray-900/50 p-3 rounded-lg">
                             <p id="appListPlaceholder" class="text-gray-500">追加されたアプリがここに表示されます。</p>
                         </div>
                     </div>
                 </div>
-
 
                 <!-- User Management -->
                 <div class="section-card">
@@ -229,10 +228,10 @@
                     </div>
                     <div id="user-mgmt-options" class="section-content hidden-section">
                         <div class="section-card border-blue-500/50">
-                           <div class="section-header section-header-option">
-                               <label class="switch option-group"><input type="checkbox" id="optAutoGenerateUser"><span class="slider"></span></label>
-                               <h3 class="font-semibold ml-4">ユーザー・パスワード自動生成</h3>
-                           </div>
+                            <div class="section-header section-header-option">
+                                <label class="switch option-group"><input type="checkbox" id="optAutoGenerateUser"><span class="slider"></span></label>
+                                <h3 class="font-semibold ml-4">ユーザー・パスワード自動生成</h3>
+                            </div>
                         </div>
                         <div class="input-group">
                             <label for="newUsername" class="block mb-2 font-medium">新規ユーザー名</label>
@@ -245,8 +244,8 @@
                                 <button type="button" id="generatePassBtn" class="btn btn-secondary whitespace-nowrap text-sm py-2">ランダム生成</button>
                             </div>
                         </div>
-                       
-                        <!-- Options -->
+                    
+                        <!-- Other Options -->
                         <div class="mt-6 space-y-4">
                             <div class="section-card border-blue-500/50">
                                 <div class="section-header section-header-option">
@@ -276,7 +275,6 @@
                     </div>
                 </div>
 
-
                 <!-- Reboot Option -->
                 <div class="section-card">
                      <div class="section-header">
@@ -285,40 +283,39 @@
                      </div>
                 </div>
 
-
             </div>
-
 
             <!-- Right Side: Output -->
             <div>
                 <div class="sticky top-8">
-                    <div class="section-card p-6">
-                        <div class="input-group">
-                            <label for="batchFilename" class="block mb-2 font-medium text-center text-white">バッチファイル名</label>
-                            <div class="flex items-center justify-center">
-                                <input type="text" id="batchFilename" class="input-field text-right rounded-r-none" value="setup">
-                                <span class="px-3 py-2 bg-gray-600 text-gray-300 rounded-r-md border border-gray-600" style="height: 38px;">.bat</span>
+                    <div class="section-card text-center">
+                         <div class="section-header justify-center section-header-main">
+                             <h2 class="text-xl font-semibold">生成とダウンロード</h2>
+                        </div>
+                        <div class="section-content">
+                            <label for="batchFilename" class="block mb-2 font-medium">ファイル名</label>
+                            <div class="flex items-center justify-center max-w-xs mx-auto">
+                                 <input type="text" id="batchFilename" class="input-field text-right rounded-r-none" value="setup">
+                                 <span class="px-3 py-2 bg-gray-600 text-gray-300 rounded-r-md border border-l-0 border-gray-600" style="height: 38px;">.bat</span>
+                            </div>
+                            <div class="mt-8">
+                                <button id="downloadBtn" class="btn btn-primary text-lg w-full max-w-xs mx-auto py-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                    ダウンロード
+                                </button>
                             </div>
                         </div>
-                        <div class="mt-6 flex justify-center items-center">
-                            <button id="downloadBtn" class="btn btn-primary text-lg px-8 py-4 w-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                                ダウンロード
-                            </button>
-                        </div>
                     </div>
-                    <!-- The textarea is now hidden but still functional for the script generation -->
+                    <!-- The textarea is hidden but still functional for the script generation -->
                     <textarea id="outputScript" readonly class="hidden"></textarea>
                 </div>
             </div>
         </div>
 
-
         <footer class="text-center mt-12 text-gray-500">
-            <p>&copy; テストサイト</p>
+            <p>&copy; 2025 バッチファイル作成ツール</p>
         </footer>
     </div>
-
 
     <script>
         // --- Global State & Constants ---
@@ -332,9 +329,7 @@
             { id: 'withsecure-installer', name: 'WithSecure Elements', type: 'withsecure' }
         ];
 
-
         // --- Function Definitions ---
-
 
         // Toggles visibility of a section based on a checkbox
         const setupToggle = (checkboxId, sectionId) => {
@@ -356,62 +351,31 @@
         const renderWifiList = () => {
             const container = document.getElementById('wifiListContainer');
             container.innerHTML = '';
-            if (wifiCredentials.length === 0) {
-                // No placeholder needed as one is added by default
-            } else {
-                wifiCredentials.forEach((cred, index) => {
-                    const div = document.createElement('div');
-                    div.className = 'p-4 border border-gray-700 rounded-lg relative';
-                    div.innerHTML = `
-                        <button type="button" class="absolute top-2 right-2 text-gray-500 hover:text-red-400 text-2xl leading-none" data-index="${index}">&times;</button>
-                        <div class="input-group">
-                            <label class="block mb-2 font-medium text-sm">SSID</label>
-                            <input type="text" class="input-field wifi-ssid" data-index="${index}" value="${cred.ssid}" placeholder="Wi-Fiネットワーク名">
-                        </div>
-                        <div class="input-group mb-0">
-                            <label class="block mb-2 font-medium text-sm">パスワード</label>
-                            <input type="text" class="input-field wifi-pass" data-index="${index}" value="${cred.pass}" placeholder="Wi-Fiパスワード">
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            }
+            
+            wifiCredentials.forEach((cred, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2';
+                div.innerHTML = `
+                    <input type="text" class="input-field flex-1 wifi-ssid" data-index="${index}" value="${cred.ssid}" placeholder="SSID (Wi-Fi名)">
+                    <input type="text" class="input-field flex-1 wifi-pass" data-index="${index}" value="${cred.pass}" placeholder="パスワード">
+                    <button type="button" class="remove-wifi-btn text-gray-500 hover:text-red-400 text-2xl leading-none flex-shrink-0 px-2" data-index="${index}">&times;</button>
+                `;
+                container.appendChild(div);
+            });
 
-
-            // Add event listeners after rendering
-            document.querySelectorAll('.wifi-ssid').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    wifiCredentials[e.target.dataset.index].ssid = e.target.value;
-                    generateScript();
-                });
-            });
-            document.querySelectorAll('.wifi-pass').forEach(input => {
-                input.addEventListener('input', (e) => {
-                    wifiCredentials[e.target.dataset.index].pass = e.target.value;
-                    generateScript();
-                });
-            });
-            document.querySelectorAll('#wifiListContainer button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    wifiCredentials.splice(e.currentTarget.dataset.index, 1);
-                    renderWifiList();
-                    generateScript();
-                });
-            });
+            document.querySelectorAll('.wifi-ssid').forEach(input => input.addEventListener('input', (e) => { wifiCredentials[e.target.dataset.index].ssid = e.target.value; generateScript(); }));
+            document.querySelectorAll('.wifi-pass').forEach(input => input.addEventListener('input', (e) => { wifiCredentials[e.target.dataset.index].pass = e.target.value; generateScript(); }));
+            document.querySelectorAll('.remove-wifi-btn').forEach(button => button.addEventListener('click', (e) => { wifiCredentials.splice(e.currentTarget.dataset.index, 1); renderWifiList(); generateScript(); }));
         };
-
 
         // Renders the list of apps to be installed
         const renderAppList = () => {
             const container = document.getElementById('appListContainer');
-            container.innerHTML = ''; // Clear the container completely
-
+            container.innerHTML = ''; 
 
             if (appsToInstallList.size === 0) {
-                // If the list is empty, add the placeholder text back.
                 container.innerHTML = '<p id="appListPlaceholder" class="text-gray-500">追加されたアプリがここに表示されます。</p>';
             } else {
-                // If the list has items, render them.
                 Array.from(appsToInstallList.values()).forEach(app => {
                     const appElement = document.createElement('div');
                     appElement.className = 'flex items-center justify-between bg-gray-700 p-2 rounded-md';
@@ -421,8 +385,7 @@
                         <button type="button" class="text-red-400 hover:text-red-300 font-bold text-xl leading-none px-2" data-appid="${app.id}">&times;</button>
                     `;
                     appElement.querySelector('button').addEventListener('click', (e) => {
-                        const idToRemove = e.currentTarget.dataset.appid;
-                        appsToInstallList.delete(idToRemove);
+                        appsToInstallList.delete(e.currentTarget.dataset.appid);
                         syncCheckboxes();
                         renderAppList();
                         generateScript();
@@ -432,17 +395,13 @@
             }
         };
 
-
         // Sync common app checkboxes with the master list
         const syncCheckboxes = () => {
             COMMON_APPS.forEach(app => {
                 const checkbox = document.querySelector(`#common-apps-grid input[data-app-id="${app.id}"]`);
-                if (checkbox) {
-                    checkbox.checked = appsToInstallList.has(app.id);
-                }
+                if (checkbox) checkbox.checked = appsToInstallList.has(app.id);
             });
         };
-
 
         // Populate common apps grid
         const populateCommonApps = () => {
@@ -467,8 +426,7 @@
                 grid.appendChild(label);
             });
         };
-
-
+        
         // Generates an 8-character random password
         const generateRandomPassword = () => {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -479,12 +437,10 @@
             return password;
         };
 
-
         // Main function to generate the entire batch script
         const generateScript = () => {
             let contentScript = [];
             let needsAdminCheck = false;
-
 
             // --- Wi-Fi Section ---
             if (document.getElementById('enableWifi').checked && wifiCredentials.some(c => c.ssid && c.pass)) {
@@ -535,14 +491,11 @@ del "%TEMP%\\!SSID_NAME!.xml" > nul 2>&1
                 contentScript.push(wifiBlocks);
             }
 
-
             // --- App Installation Section ---
             if (document.getElementById('enableApps').checked && appsToInstallList.size > 0) {
                 needsAdminCheck = true;
                 const wingetAppIds = [];
-                const urlAppScripts = [];
                 let withSecureScript = '';
-
 
                 appsToInstallList.forEach(app => {
                     if (app.type === 'withsecure') {
@@ -564,13 +517,10 @@ if exist "!WITHSECURE_OUT!" (
     echo  -^> [ERROR] WithSecure download failed.
 )
 `;
-                    } else if (app.type === 'url') {
-                        // This part can be expanded for other URL-based installers
-                    } else {
+                    } else { // 'winget' type
                         wingetAppIds.push(app.id);
                     }
                 });
-
 
                 if (withSecureScript) {
                     contentScript.push(withSecureScript);
@@ -582,7 +532,7 @@ if exist "!WITHSECURE_OUT!" (
 :: ==================================================
 echo.
 echo Starting other application installation...
-set "APPS_TO_INSTALL=${wingetAppIds.join(',')}"
+set "APPS_TO_INSTALL=${wingetAppIds.join(' ')}"
 winget source list > nul
 for %%a in (%APPS_TO_INSTALL%) do (
     echo.
@@ -599,16 +549,14 @@ for %%a in (%APPS_TO_INSTALL%) do (
                 }
             }
 
-
             // --- User Management Section ---
             if (document.getElementById('enableUserMgmt').checked) {
                 needsAdminCheck = true;
+                let initialUserScript = '';
                 const autoGenerate = document.getElementById('optAutoGenerateUser').checked;
-                let userScript;
-
 
                 if (autoGenerate) {
-                    userScript = `
+                    initialUserScript = `
 :: ==================================================
 :: User Account Management (Auto-generated)
 :: ==================================================
@@ -627,7 +575,7 @@ echo Password generated for 'recovery'.
                     const username = document.getElementById('newUsername').value.trim();
                     const password = document.getElementById('newPassword').value;
                     if (username && password) {
-                         userScript = `
+                         initialUserScript = `
 :: ==================================================
 :: User Account Management (Manual)
 :: ==================================================
@@ -639,36 +587,43 @@ set "NEW_PASSWORD=${password}"
                     }
                 }
 
-
-                if (userScript) {
+                if (initialUserScript) {
+                    const userScriptParts = [initialUserScript];
                     const requirePassChange = document.getElementById('optForcePassChange').checked ? '/logonpasswordchg:yes' : '/logonpasswordchg:no';
                     const setAsAdmin = document.getElementById('optSetAdmin').checked;
                     const createPassFile = document.getElementById('optCreatePassFile').checked;
                     const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
 
+                    userScriptParts.push(
+                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange}`,
+                        `if !errorlevel! neq 0 (`,
+                        `    echo   -^> ERROR: Failed to create user "!NEW_USERNAME!".`,
+                        `    goto user_management_end`,
+                        `)`,
+                        `echo   -^> User "!NEW_USERNAME!" created successfully.`,
+                        // Add user to Users group for stability.
+                        `net localgroup Users "!NEW_USERNAME!" /add`
+                    );
 
-                    userScript += `
-net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange}
-if !errorlevel! neq 0 (
-    echo   -^> ERROR: Failed to create user "!NEW_USERNAME!".
-    goto user_management_end
-)
-echo   -^> User "!NEW_USERNAME!" created successfully.
-`;
                     if (setAsAdmin) {
-                        userScript += `net localgroup administrators "!NEW_USERNAME!" /add\n`;
+                        userScriptParts.push(`net localgroup administrators "!NEW_USERNAME!" /add`);
                     }
+
                     if (createPassFile) {
-                        userScript += `mkdir "%~dp0password" > nul 2>&1\n(echo User: !NEW_USERNAME! & echo Pass: !NEW_PASSWORD!) > "%~dp0password\\%USERNAME%.txt"\n`;
+                        // Use COMPUTERNAME for a unique filename per machine.
+                        const infoFilename = `"%~dp0password\\%COMPUTERNAME%_info.txt"`;
+                        userScriptParts.push(`mkdir "%~dp0password" > nul 2>&1`);
+                        userScriptParts.push(`(echo User: !NEW_USERNAME! & echo Pass: !NEW_PASSWORD!) > ${infoFilename}`);
                     }
+
                     if (demoteCurrentUser) {
-                        userScript += `net localgroup administrators "%USERNAME%" /delete\n`;
+                        userScriptParts.push(`net localgroup administrators "%USERNAME%" /delete`);
                     }
-                    userScript += `:user_management_end`;
-                    contentScript.push(userScript);
+
+                    userScriptParts.push(`:user_management_end`);
+                    contentScript.push(userScriptParts.join('\n'));
                 }
             }
-
 
             // --- Reboot Section ---
             if (document.getElementById('enableReboot').checked) {
@@ -687,11 +642,12 @@ shutdown /r /t ${delay}
            
             // --- Final Script Assembly ---
             let finalScript = [];
-            if (needsAdminCheck) {
-                finalScript.push('@echo off', 'chcp 65001 > nul');
-                const adminCheck = `
+            if (contentScript.length > 0) {
+                 finalScript.push('@echo off', 'chcp 65001 > nul');
+                 if (needsAdminCheck) {
+                    const adminCheck = `
 net session >nul 2>&1
-if %errorlevel% neq 0 (
+if %errorlevel! neq 0 (
     echo.
     echo  ERROR: Not running as an administrator.
     echo  Please right-click this file and select "Run as administrator".
@@ -701,7 +657,9 @@ if %errorlevel% neq 0 (
 )
 echo Running with administrator privileges...
 `;
-                finalScript.push(adminCheck, 'setlocal enabledelayedexpansion', ...contentScript);
+                    finalScript.push(adminCheck);
+                 }
+                finalScript.push('setlocal enabledelayedexpansion', ...contentScript);
                 finalScript.push(`
 echo.
 echo All processes are complete.
@@ -710,10 +668,8 @@ endlocal
 `);
             }
 
-
             document.getElementById('outputScript').value = finalScript.join('\n\n').trim();
         };
-
 
         // --- Event Listener Attachment ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -722,10 +678,10 @@ endlocal
             setupToggle('enableApps', 'apps-options');
             setupToggle('enableUserMgmt', 'user-mgmt-options');
            
-            document.querySelectorAll('input').forEach(input => {
+            document.querySelectorAll('input[type="checkbox"], input[type="text"], input[type="radio"], select').forEach(input => {
                 input.addEventListener('input', generateScript);
+                input.addEventListener('change', generateScript);
             });
-
 
             document.getElementById('addWifiBtn').addEventListener('click', () => {
                 wifiCredentials.push({ ssid: '', pass: '' });
@@ -735,11 +691,9 @@ endlocal
             wifiCredentials.push({ ssid: '', pass: '' });
             renderWifiList();
 
-
             const searchAppBtn = document.getElementById('searchAppBtn');
             const appSearchInput = document.getElementById('appSearchInput');
             const appSearchResultsContainer = document.getElementById('appSearchResultsContainer');
-
 
             const handleAppSearch = async () => {
                 const searchTerm = appSearchInput.value.trim();
@@ -780,7 +734,6 @@ endlocal
                             generateScript();
                             btn.textContent = '追加済';
                             btn.disabled = true;
-                            btn.classList.add('opacity-50', 'cursor-not-allowed');
                         });
                     });
                 } catch (error) {
@@ -792,26 +745,10 @@ endlocal
             appSearchInput.addEventListener('keypress', (e) => e.key === 'Enter' && handleAppSearch());
 
 
-            const addAppByUrlBtn = document.getElementById('addAppByUrlBtn');
-            const appUrlInput = document.getElementById('appUrlInput');
-            addAppByUrlBtn.addEventListener('click', () => {
-                const url = appUrlInput.value.trim();
-                if(url) {
-                    const filename = url.substring(url.lastIndexOf('/') + 1);
-                    appsToInstallList.set(url, {id: url, name: filename, type: 'url'});
-                    appUrlInput.value = '';
-                    renderAppList();
-                    generateScript();
-                }
-            });
-            appUrlInput.addEventListener('keypress', (e) => e.key === 'Enter' && addAppByUrlBtn.click());
-
-
             const generatePassBtn = document.getElementById('generatePassBtn');
             const newPasswordInput = document.getElementById('newPassword');
             const newUsernameInput = document.getElementById('newUsername');
             const autoGenerateUserCheckbox = document.getElementById('optAutoGenerateUser');
-
 
             const handleAutoGenerateToggle = () => {
                 const isDisabled = autoGenerateUserCheckbox.checked;
@@ -828,8 +765,8 @@ endlocal
                 newPasswordInput.dispatchEvent(new Event('input'));
             });
 
-
             document.getElementById('downloadBtn').addEventListener('click', () => {
+                generateScript();
                 const scriptContent = document.getElementById('outputScript').value;
                 if (!scriptContent) {
                     alert("生成するスクリプトがありません。何かオプションを選択してください。");
@@ -849,16 +786,17 @@ endlocal
                 URL.revokeObjectURL(url);
             });
 
-
+            // Initial setup calls
             handleAutoGenerateToggle();
             renderAppList();
             generateScript();
         });
     </script>
 
-
 </body>
 </html>
+
+
 
 
 
