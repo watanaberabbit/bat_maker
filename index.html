@@ -553,17 +553,6 @@ for %%a in (%APPS_TO_INSTALL%) do (
             if (document.getElementById('enableUserMgmt').checked) {
                 needsAdminCheck = true;
                 
-                const userScriptParts = [];
-
-                userScriptParts.push(`
-:: ==================================================
-:: Set Machine Password Policy
-:: ==================================================
-echo.
-echo Setting machine-wide password policy to unlimited...
-net accounts /MAXPWAGE:UNLIMITED
-`);
-
                 let initialUserScript = '';
                 const autoGenerate = document.getElementById('optAutoGenerateUser').checked;
 
@@ -600,10 +589,19 @@ set "NEW_PASSWORD=${password}"
                 }
 
                 if (initialUserScript) {
-                    userScriptParts.push(initialUserScript);
+                    const userScriptParts = [initialUserScript];
                     const setAsAdmin = document.getElementById('optSetAdmin').checked;
                     const createPassFile = document.getElementById('optCreatePassFile').checked;
                     const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
+                    
+                    userScriptParts.push(`
+:: ==================================================
+:: Set Machine Password Policy
+:: ==================================================
+echo.
+echo Setting machine-wide password policy to unlimited...
+net accounts /MAXPWAGE:UNLIMITED
+`);
 
                     // Step 1: Create the user.
                     userScriptParts.push(
@@ -637,8 +635,8 @@ set "NEW_PASSWORD=${password}"
                     }
 
                     userScriptParts.push(`:user_management_end`);
+                    contentScript.push(userScriptParts.join('\n'));
                 }
-                contentScript.push(userScriptParts.join('\n'));
             }
 
             // --- Reboot Section ---
@@ -811,6 +809,4 @@ endlocal
 
 </body>
 </html>
-
-
 
