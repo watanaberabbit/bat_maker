@@ -255,8 +255,8 @@
                             </div>
                             <div class="section-card border-blue-500/50">
                                 <div class="section-header section-header-option">
-                                    <label class="switch option-group"><input type="checkbox" id="optForcePassChange"><span class="slider"></span></label>
-                                    <h3 class="font-semibold ml-4">初回ログイン時にパスワード変更を要求</h3>
+                                    <label class="switch option-group"><input type="checkbox" id="optPasswordNoChange"><span class="slider"></span></label>
+                                    <h3 class="font-semibold ml-4">ユーザーはパスワードを変更できない</h3>
                                 </div>
                             </div>
                             <div class="section-card border-blue-500/50">
@@ -589,13 +589,15 @@ set "NEW_PASSWORD=${password}"
 
                 if (initialUserScript) {
                     const userScriptParts = [initialUserScript];
-                    const requirePassChange = document.getElementById('optForcePassChange').checked ? '/logonpasswordchg:yes' : '/logonpasswordchg:no';
+                    // This option is now replaced by optPasswordNoChange
+                    // const requirePassChange = document.getElementById('optForcePassChange').checked ? '/logonpasswordchg:yes' : '/logonpasswordchg:no';
+                    const passwordNoChange = document.getElementById('optPasswordNoChange').checked ? '/passwordchg:no' : '/passwordchg:yes';
                     const setAsAdmin = document.getElementById('optSetAdmin').checked;
                     const createPassFile = document.getElementById('optCreatePassFile').checked;
                     const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
 
                     userScriptParts.push(
-                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange} /expires:never`,
+                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${passwordNoChange} /expires:never`,
                         `if !errorlevel! neq 0 (`,
                         `    echo   -^> ERROR: Failed to create user "!NEW_USERNAME!".`,
                         `    goto user_management_end`,
