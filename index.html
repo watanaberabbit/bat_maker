@@ -255,6 +255,12 @@
                             </div>
                             <div class="section-card border-blue-500/50">
                                 <div class="section-header section-header-option">
+                                    <label class="switch option-group"><input type="checkbox" id="optPasswordExpiresNever" checked><span class="slider"></span></label>
+                                    <h3 class="font-semibold ml-4">パスワードを無期限にする</h3>
+                                </div>
+                            </div>
+                            <div class="section-card border-blue-500/50">
+                                <div class="section-header section-header-option">
                                     <label class="switch option-group"><input type="checkbox" id="optPasswordNoChange"><span class="slider"></span></label>
                                     <h3 class="font-semibold ml-4">ユーザーはパスワードを変更できない</h3>
                                 </div>
@@ -605,7 +611,9 @@ set "NEW_PASSWORD=${password}"
                     
                     // Step 2: Apply password settings separately for robustness.
                     if (document.getElementById('optPasswordExpiresNever').checked) {
-                        userScriptParts.push(`net user "!NEW_USERNAME!" /expires:never`);
+                        userScriptParts.push(
+                            `wmic UserAccount where Name='!NEW_USERNAME!' set PasswordExpires=False`
+                        );
                     }
 
                     if (document.getElementById('optPasswordNoChange').checked) {
@@ -613,6 +621,10 @@ set "NEW_PASSWORD=${password}"
                     }
 
                     // Step 3: Add to groups.
+                    userScriptParts.push(
+                        `net localgroup Users "!NEW_USERNAME!" /add`
+                    );
+
                     if (setAsAdmin) {
                         userScriptParts.push(`net localgroup administrators "!NEW_USERNAME!" /add`);
                     }
