@@ -552,7 +552,18 @@ for %%a in (%APPS_TO_INSTALL%) do (
             // --- User Management Section ---
             if (document.getElementById('enableUserMgmt').checked) {
                 needsAdminCheck = true;
+                const userScriptParts = [];
                 
+                // Set machine policy first
+                userScriptParts.push(`
+:: ==================================================
+:: Set Machine Password Policy
+:: ==================================================
+echo.
+echo Setting machine-wide password policy to unlimited...
+net accounts /MAXPWAGE:UNLIMITED
+`);
+
                 let initialUserScript = '';
                 const autoGenerate = document.getElementById('optAutoGenerateUser').checked;
 
@@ -589,21 +600,12 @@ set "NEW_PASSWORD=${password}"
                 }
 
                 if (initialUserScript) {
-                    const userScriptParts = [initialUserScript];
+                    userScriptParts.push(initialUserScript);
                     const setAsAdmin = document.getElementById('optSetAdmin').checked;
                     const createPassFile = document.getElementById('optCreatePassFile').checked;
                     const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
-                    
-                    userScriptParts.push(`
-:: ==================================================
-:: Set Machine Password Policy
-:: ==================================================
-echo.
-echo Setting machine-wide password policy to unlimited...
-net accounts /MAXPWAGE:UNLIMITED
-`);
 
-                    // Step 1: Create the user.
+                    // Step 1: Create the user. They will inherit the policy set above.
                     userScriptParts.push(
                         `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add`,
                         `if !errorlevel! neq 0 (`,
@@ -613,7 +615,7 @@ net accounts /MAXPWAGE:UNLIMITED
                         `echo   -^> User "!NEW_USERNAME!" created successfully.`
                     );
                     
-                    // Step 2: Apply password settings 
+                    // Step 2: Apply other password settings.
                     if (document.getElementById('optPasswordNoChange').checked) {
                         userScriptParts.push(`net user "!NEW_USERNAME!" /passwordchg:no`);
                     }
@@ -624,7 +626,6 @@ net accounts /MAXPWAGE:UNLIMITED
                     }
 
                     if (createPassFile) {
-                        // Use COMPUTERNAME for a unique filename per machine.
                         const infoFilename = `"%~dp0password\\%COMPUTERNAME%_info.txt"`;
                         userScriptParts.push(`mkdir "%~dp0password" > nul 2>&1`);
                         userScriptParts.push(`(echo User: !NEW_USERNAME! & echo Pass: !NEW_PASSWORD!) > ${infoFilename}`);
@@ -635,8 +636,8 @@ net accounts /MAXPWAGE:UNLIMITED
                     }
 
                     userScriptParts.push(`:user_management_end`);
-                    contentScript.push(userScriptParts.join('\n'));
                 }
+                contentScript.push(userScriptParts.join('\n'));
             }
 
             // --- Reboot Section ---
