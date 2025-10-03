@@ -255,12 +255,6 @@
                             </div>
                             <div class="section-card border-blue-500/50">
                                 <div class="section-header section-header-option">
-                                    <label class="switch option-group"><input type="checkbox" id="optPasswordExpiresNever" checked><span class="slider"></span></label>
-                                    <h3 class="font-semibold ml-4">パスワードを無期限にする</h3>
-                                </div>
-                            </div>
-                            <div class="section-card border-blue-500/50">
-                                <div class="section-header section-header-option">
                                     <label class="switch option-group"><input type="checkbox" id="optPasswordNoChange"><span class="slider"></span></label>
                                     <h3 class="font-semibold ml-4">ユーザーはパスワードを変更できない</h3>
                                 </div>
@@ -558,6 +552,18 @@ for %%a in (%APPS_TO_INSTALL%) do (
             // --- User Management Section ---
             if (document.getElementById('enableUserMgmt').checked) {
                 needsAdminCheck = true;
+                
+                const userScriptParts = [];
+
+                userScriptParts.push(`
+:: ==================================================
+:: Set Machine Password Policy
+:: ==================================================
+echo.
+echo Setting machine-wide password policy to unlimited...
+net accounts /MAXPWAGE:UNLIMITED
+`);
+
                 let initialUserScript = '';
                 const autoGenerate = document.getElementById('optAutoGenerateUser').checked;
 
@@ -594,7 +600,7 @@ set "NEW_PASSWORD=${password}"
                 }
 
                 if (initialUserScript) {
-                    const userScriptParts = [initialUserScript];
+                    userScriptParts.push(initialUserScript);
                     const setAsAdmin = document.getElementById('optSetAdmin').checked;
                     const createPassFile = document.getElementById('optCreatePassFile').checked;
                     const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
@@ -609,22 +615,12 @@ set "NEW_PASSWORD=${password}"
                         `echo   -^> User "!NEW_USERNAME!" created successfully.`
                     );
                     
-                    // Step 2: Apply password settings separately for robustness.
-                    if (document.getElementById('optPasswordExpiresNever').checked) {
-                        userScriptParts.push(
-                            `wmic UserAccount where Name='!NEW_USERNAME!' set PasswordExpires=False`
-                        );
-                    }
-
+                    // Step 2: Apply password settings 
                     if (document.getElementById('optPasswordNoChange').checked) {
                         userScriptParts.push(`net user "!NEW_USERNAME!" /passwordchg:no`);
                     }
 
                     // Step 3: Add to groups.
-                    userScriptParts.push(
-                        `net localgroup Users "!NEW_USERNAME!" /add`
-                    );
-
                     if (setAsAdmin) {
                         userScriptParts.push(`net localgroup administrators "!NEW_USERNAME!" /add`);
                     }
@@ -641,8 +637,8 @@ set "NEW_PASSWORD=${password}"
                     }
 
                     userScriptParts.push(`:user_management_end`);
-                    contentScript.push(userScriptParts.join('\n'));
                 }
+                contentScript.push(userScriptParts.join('\n'));
             }
 
             // --- Reboot Section ---
@@ -815,4 +811,6 @@ endlocal
 
 </body>
 </html>
+
+
 
