@@ -300,7 +300,7 @@
                             </div>
                             <div class="mt-8">
                                 <button id="downloadBtn" class="btn btn-primary text-lg w-full max-w-xs mx-auto py-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                                     ダウンロード
                                 </button>
                             </div>
@@ -589,21 +589,29 @@ set "NEW_PASSWORD=${password}"
 
                 if (initialUserScript) {
                     const userScriptParts = [initialUserScript];
-                    // This option is now replaced by optPasswordNoChange
-                    // const requirePassChange = document.getElementById('optForcePassChange').checked ? '/logonpasswordchg:yes' : '/logonpasswordchg:no';
                     const passwordNoChange = document.getElementById('optPasswordNoChange').checked ? '/passwordchg:no' : '/passwordchg:yes';
                     const setAsAdmin = document.getElementById('optSetAdmin').checked;
                     const createPassFile = document.getElementById('optCreatePassFile').checked;
                     const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
 
+                    // Step 1: Create the user. The /add switch implies temporary password policies.
                     userScriptParts.push(
-                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${passwordNoChange} /expires:never`,
+                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add`,
                         `if !errorlevel! neq 0 (`,
                         `    echo   -^> ERROR: Failed to create user "!NEW_USERNAME!".`,
                         `    goto user_management_end`,
                         `)`,
-                        `echo   -^> User "!NEW_USERNAME!" created successfully.`,
-                        // Add user to Users group for stability.
+                        `echo   -^> User "!NEW_USERNAME!" created successfully.`
+                    );
+                    
+                    // Step 2: Apply password settings separately for robustness.
+                    userScriptParts.push(
+                        `net user "!NEW_USERNAME!" /expires:never`,
+                        `net user "!NEW_USERNAME!" ${passwordNoChange}`
+                    );
+
+                    // Step 3: Add to groups.
+                    userScriptParts.push(
                         `net localgroup Users "!NEW_USERNAME!" /add`
                     );
 
