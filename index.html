@@ -595,8 +595,7 @@ const createPassFile = document.getElementById('optCreatePassFile').checked;
 const demoteCurrentUser = document.getElementById('optDemoteCurrentUser').checked;
 
 userScriptParts.push(
-                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange}`,
-                        `net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange} /expires:never`,
+`net user "!NEW_USERNAME!" "!NEW_PASSWORD!" /add ${requirePassChange}`,
 `if !errorlevel! neq 0 (`,
 `    echo   -^> ERROR: Failed to create user "!NEW_USERNAME!".`,
 `    goto user_management_end`,
@@ -796,4 +795,9 @@ generateScript();
 
 </body>
 </html>
-~
+
+
+
+
+
+
