@@ -326,7 +326,7 @@
             { id: 'Zoom.Zoom', name: 'Zoom', type: 'winget' },
             { id: 'Microsoft.VisualStudioCode', name: 'VS Code', type: 'winget' },
             { id: 'Slack.Slack', name: 'Slack', type: 'winget' },
-            { id: 'Microsoft.Office', name: 'Microsoft 365', type: 'winget' },
+            { id: 'office-local-installer', name: 'Office (ローカル)', type: 'office_local' },
             { id: 'withsecure-installer', name: 'WithSecure Elements', type: 'withsecure' }
         ];
 
@@ -496,10 +496,32 @@ del "%TEMP%\\!SSID_NAME!.xml" > nul 2>&1
             if (document.getElementById('enableApps').checked && appsToInstallList.size > 0) {
                 needsAdminCheck = true;
                 const wingetAppIds = [];
+                let officeScript = '';
                 let withSecureScript = '';
 
                 appsToInstallList.forEach(app => {
-                    if (app.type === 'withsecure') {
+                    if (app.type === 'office_local') {
+                        officeScript = `
+:: ==================================================
+:: Microsoft Office Setup (Local)
+:: ==================================================
+echo.
+echo Searching for local OfficeSetup.exe...
+set "OFFICE_SETUP_SOURCE=%~dp0OfficeSetup.exe"
+set "OFFICE_SETUP_DEST=%USERPROFILE%\\Desktop\\OfficeSetup.exe"
+if exist "!OFFICE_SETUP_SOURCE!" (
+    echo  -^> Found. Copying to Desktop...
+    copy "!OFFICE_SETUP_SOURCE!" "!OFFICE_SETUP_DEST!" > nul
+    if !errorlevel! equ 0 (
+        echo  -^> Successfully copied Office installer to the Desktop.
+    ) else (
+        echo  -^> ERROR: Failed to copy Office installer.
+    )
+) else (
+    echo  -^> [ERROR] OfficeSetup.exe not found in the script's folder. Please place it next to this .bat file.
+)
+`;
+                    } else if (app.type === 'withsecure') {
                         withSecureScript = `
 :: ==================================================
 :: WithSecure Elements Installation
@@ -523,6 +545,9 @@ if exist "!WITHSECURE_OUT!" (
                     }
                 });
 
+                if (officeScript) {
+                    contentScript.push(officeScript);
+                }
                 if (withSecureScript) {
                     contentScript.push(withSecureScript);
                 }
@@ -666,7 +691,7 @@ shutdown /r /t ${delay}
                  if (needsAdminCheck) {
                      const adminCheck = `
 net session >nul 2>&1
-if %errorlevel% neq 0 (
+if %errorlevel! neq 0 (
     echo.
     echo  ERROR: Not running as an administrator.
     echo  Please right-click this file and select "Run as administrator".
